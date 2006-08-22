@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # Batch chain log parser for GraphTalk AIA
 # Written by Georgi D. Sotirov <gsotirov@obs.bg>
-# Date: 2006-08-21
+# Date: 2006-08-22
 #
 # This script will output the main information about the batches
 # in CSV (Comma Separated Values) format.
@@ -21,7 +21,7 @@ sub reformat_date {
   return $_[0];
 }
 
-open(LOGFILE, $logfile) or die "Error: Can't open file $logfile!";
+open(LOGFILE, $logfile) or die "Error: Can not open file '$logfile': $!\n";
 
 my $number = 0;
 my %table;
@@ -71,6 +71,8 @@ while ( <LOGFILE> ) {
   }
 }
 
+close(LOGFILE) or warn "Warning: Closing of file '$logfile' failed: $!\n";
+
 # Find data order
 my @order;
 foreach $key (keys %table) {
@@ -78,7 +80,7 @@ foreach $key (keys %table) {
 }
 
 # Print gathered information
-print "batch;start_date;start_time;end_date;end_time;return;steps;errors\n";
+print "Batch;Start date;Start time;End date;End time;Return code;Steps;Errors\n";
 for (my $i = 1; $i < scalar(@order); ++$i ) {
   printf "%s;%s;%s;%s;%s;%d;%d;%d\n", $order[$i],
                                       $table{$order[$i]}{'start_date'},

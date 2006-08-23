@@ -2,8 +2,9 @@ Batch chain log parser for GraphTalk AIA
 -------------------------------------------------------------------------------
 
 A simple Perl script that parses the log file from a batch chain execution and
-prints details for the execution of each batch like start and end time, return
-code, executed steps and errors count in CSV (Comma Separated Values) format.
+prints details for the execution of each batch like start and end time,
+duration, executed steps, errors count and return code in CSV (Comma Separated
+Values) format.
 
 Usage
 -------------------------------------------------------------------------------
@@ -16,5 +17,5 @@ $ ./logparse.pl my_log_file
 Author
 -------------------------------------------------------------------------------
 Georgi D. Sotirov <gsotirov@obs.bg>
-2006-08-21
+2006-08-23
 

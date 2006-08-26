@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # Batch chain log parser for GraphTalk AIA
 # Written by Georgi D. Sotirov <gsotirov@obs.bg>
-# Date: 2006-08-25
+# Date: 2006-08-26
 #
 # This script will output the main information about the batches
 # in CSV (Comma Separated Values) format.
@@ -22,10 +22,49 @@
 $SEP = ";"; # Output field separator
 
 $logfile = $ARGV[0];
+$aftermidnight = 0;
 
 sub reformat_date($) {
   $_[0] =~ s/([0-9]{2})([0-9]{2})([0-9]{4})/$1\/$2\/$3/;
   return $_[0];
+}
+
+sub leapyear($) {
+  if ( ($_[0] % 4 == 0) && ($_[0] % 100 != 0) || ($_[0] % 400 == 0) ) {
+    return 1;
+  }
+  return 0;
+}
+
+sub mnth_days($$) {
+  if ( $_[0] == 1 || $_[0] == 3 || $_[0] == 5 || $_[0] == 7 || $_[0] == 8 || $_[0] == 10 || $_[0] == 12 ) {
+    return 31;
+  }
+  elsif ( $_[0] == 4 || $_[0] == 6 || $_[0] == 9 || $_[0] == 11 ) {
+    return 30;
+  }
+  else { # february
+    if ( leapyear($_[1]) ) {
+      return 29;
+    }
+    else {
+      return 28;
+    }
+  }
+}
+
+sub increase_date($) {
+  ($day, $mnth, $yr) = split(/\//, $_[0]);
+  $day = $day + 1;
+  if ( $day > mnth_days($mnth, $yr) ) {
+    $day = 1;
+    $mnth = $mnth + 1;
+  }
+  if ( $mnth > 12 ) {
+    $mnth = 1;
+    $yr = $yr + 1;
+  }
+  return join('/', sprintf("%02u", $day), sprintf("%02u", $mnth), $yr);
 }
 
 sub parse_time($) {
@@ -114,6 +153,14 @@ foreach $key (keys %table) {
 # Print gathered information
 print "Batch${SEP}Start date${SEP}Start time${SEP}End date${SEP}End time${SEP}Duration${SEP}Steps${SEP}Errors${SEP}Exit code\n";
 for (my $i = 1; $i < scalar(@order); ++$i ) {
+  if ( $aftermidnight ) {
+    $table{$order[$i]}{'start_date'} = increase_date($table{$order[$i]}{'start_date'});
+    $table{$order[$i]}{'end_date'}   = increase_date($table{$order[$i]}{'end_date'});
+  }
+  if ( parse_time($table{$order[$i]}{'start_time'}) > parse_time($table{$order[$i]}{'end_time'}) ) {
+    $table{$order[$i]}{'end_date'} = increase_date($table{$order[$i]}{'end_date'});
+    $aftermidnight = 1;
+  }
   printf "%s${SEP}%s${SEP}%s${SEP}%s${SEP}%s${SEP}%s${SEP}%d${SEP}%d${SEP}%d\n",
           (split(/@/, $order[$i]))[0],
           $table{$order[$i]}{'start_date'},
